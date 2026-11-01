@@ -1,0 +1,43 @@
+# health-check.yml - A scheduled workflow that checks if our live site is up.
+#
+# What it does:
+#   - Runs automatically every hour (cron schedule).
+#   - Can also be triggered manually from the Actions tab (workflow_dispatch).
+#   - Uses curl to request the live site URL.
+#   - If the site does not respond with HTTP 200, the workflow fails,
+#     and GitHub sends us a notification.
+
+name: Site Health Check
+
+# ---- TRIGGERS ----
+on:
+  # Run every hour at minute 0 (e.g., 1:00, 2:00, 3:00 …).
+  schedule:
+    - cron: "0 * * * *"
+
+  # Allow running this workflow manually from the GitHub Actions tab.
+  workflow_dispatch:
+
+jobs:
+
+  # ==============================
+  # JOB: PING
+  # Send an HTTP request to the live site and check the response.
+  # ==============================
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Use curl to request the site URL stored in a repository variable.
+      # --fail makes curl return a non-zero exit code if HTTP status >= 400.
+      # --silent hides the progress bar; --show-error still shows errors.
+      # --location follows redirects (GitHub Pages sometimes redirects).
+      # --max-time 30 gives up if the site takes more than 30 seconds.
+      - name: Check if site is reachable
+        run: |
+          echo "🔍 Checking: ${{ vars.SITE_URL }}"
+          curl --fail --silent --show-error --location --max-time 30 "${{ vars.SITE_URL }}"
+
+      # If curl succeeded, print a happy message.
+      - name: Site is up
+        run: echo "✅ Site is reachable and returned HTTP 200."

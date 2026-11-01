@@ -1,0 +1,69 @@
+<!-- 
+  index.html - The main (and only) page of our static website.
+  It shows a simple "College Club Notice Board" with 3 sample notices.
+  This file will be served by Nginx inside a Docker container,
+  and deployed automatically to GitHub Pages via GitHub Actions.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Page title shown in the browser tab -->
+  <title>College Club Notice Board</title>
+  <!-- Link to our external stylesheet for colours and layout -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header>
+    <h1>📋 College Club Notice Board</h1>
+    <p class="subtitle">Stay updated with the latest club announcements</p>
+  </header>
+
+  <!-- ========== NOTICES SECTION ========== -->
+  <main>
+
+    <!-- Notice 1 -->
+    <div class="notice">
+      <span class="badge">New</span>
+      <h2>Coding Club Workshop</h2>
+      <p class="date">📅 5 November 2026 &bull; Room 301</p>
+      <p>
+        Hands-on session on building REST APIs with Python Flask.
+        All students welcome — bring your laptops!
+      </p>
+    </div>
+
+    <!-- Notice 2 -->
+    <div class="notice">
+      <span class="badge">Reminder</span>
+      <h2>Annual Sports Day Registration</h2>
+      <p class="date">📅 12 November 2026 &bull; Sports Complex</p>
+      <p>
+        Last date to register is 8 November. Fill the form on the
+        college portal. Events include cricket, badminton, and chess.
+      </p>
+    </div>
+
+    <!-- Notice 3 -->
+    <div class="notice">
+      <span class="badge">Info</span>
+      <h2>Library Extended Hours</h2>
+      <p class="date">📅 Effective from 1 November 2026</p>
+      <p>
+        The central library will remain open until 10 PM on weekdays
+        during the exam period. Carry your ID card for entry.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <p>Deployed automatically with GitHub Actions</p>
+  </footer>
+
+</body>
+</html>

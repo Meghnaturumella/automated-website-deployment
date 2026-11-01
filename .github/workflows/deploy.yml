@@ -1,0 +1,123 @@
+# deploy.yml - CI/CD pipeline that runs every time we push code to the main branch.
+#
+# What it does (3 jobs):
+#   1. check        → Makes sure site/index.html exists and is not empty.
+#   2. build-image  → Builds a Docker image from the Dockerfile (no push).
+#   3. deploy       → Publishes the site folder to GitHub Pages.
+
+name: Deploy Website
+
+# ---- TRIGGER ----
+# Run this workflow whenever code is pushed to the "main" branch.
+on:
+  push:
+    branches:
+      - main
+
+# ---- PERMISSIONS ----
+# GitHub Pages deployment needs permission to read the repo,
+# write to Pages, and get a short-lived deploy token.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ---- CONCURRENCY ----
+# Only one Pages deployment at a time; cancel any in-progress one.
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+# ---- JOBS ----
+jobs:
+
+  # ==============================
+  # JOB 1: CHECK
+  # Make sure the website file exists and is not empty before we go further.
+  # ==============================
+  check:
+    # Run on the latest Ubuntu virtual machine provided by GitHub.
+    runs-on: ubuntu-latest
+    steps:
+
+      # Download our repo code onto the runner so we can inspect it.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Verify that index.html exists; fail the pipeline if it doesn't.
+      - name: Verify index.html exists
+        run: |
+          if [ ! -f site/index.html ]; then
+            echo "❌ site/index.html not found!"
+            exit 1
+          fi
+
+      # Verify that index.html is not an empty file.
+      - name: Verify index.html is not empty
+        run: |
+          if [ ! -s site/index.html ]; then
+            echo "❌ site/index.html is empty!"
+            exit 1
+          fi
+
+      # Print a success message so we know the check passed.
+      - name: All checks passed
+        run: echo "✅ site/index.html exists and has content."
+
+  # ==============================
+  # JOB 2: BUILD-IMAGE
+  # Build the Docker image to make sure the Dockerfile is valid.
+  # We don't push the image anywhere — this is just a build test.
+  # ==============================
+  build-image:
+    # This job only runs if the "check" job succeeded.
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+
+      # Download our repo code onto the runner.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Build the Docker image and tag it as "club-site:latest".
+      - name: Build Docker image
+        run: docker build -t club-site:latest .
+
+      # Print the image details to confirm it was created.
+      - name: Show image info
+        run: docker images club-site
+
+  # ==============================
+  # JOB 3: DEPLOY
+  # Publish the "site" folder to GitHub Pages so the website goes live.
+  # ==============================
+  deploy:
+    # This job only runs if the "build-image" job succeeded.
+    needs: build-image
+    runs-on: ubuntu-latest
+
+    # Tell GitHub this job deploys to the "github-pages" environment.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+
+      # Download our repo code onto the runner.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up GitHub Pages configuration on the runner.
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+
+      # Package the "site" folder into an artifact that Pages can use.
+      - name: Upload site folder as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      # Deploy the artifact to GitHub Pages and make the site live.
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

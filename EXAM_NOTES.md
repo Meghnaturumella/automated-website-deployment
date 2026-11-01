@@ -1,115 +1,122 @@
-# 🎓 EXAM NOTES: Self-Healing Web Application on Kubernetes with CI/CD
+# 📝 EXAM NOTES — Automated Website Deployment
 
-> **Course / Project Title:** Self-Healing Web Application on Kubernetes with Automated CI/CD  
-> **Written for:** Student viva / oral exam presentation (simple plain English)
-
----
-
-## 1. The Problem
-In traditional server deployments:
-- If a server or application crashes at 3:00 AM, the website goes down completely.
-- A human engineer has to wake up, log in, restart the process, or replace the server.
-- Updates require manual copying of files, leading to human mistakes and downtime.
+> Written in simple English so you can explain every part in your exam.
 
 ---
 
-## 2. The Solution
-We built a cloud-native, self-healing system:
-1. **Containerization:** The application and its dependencies are packaged into a standard, lightweight Docker container that runs identically everywhere.
-2. **Kubernetes Orchestration:** Kubernetes continuously monitors the application. If a container crashes or is deleted, Kubernetes notices immediately and creates a brand-new container to replace it in seconds without human intervention.
-3. **Automated CI/CD:** Every time new code is pushed to GitHub, GitHub Actions tests and builds the container image automatically.
+## 1. Problem Statement
+
+Manually copying website files to a server every time we make a change is
+slow, error-prone, and hard to scale. We need an **automated** way to test,
+package, and deploy a website whenever the code is updated.
 
 ---
 
-## 3. What Each Tool Is and Why We Used It
+## 2. Solution (One Line)
 
-| Tool | What it is | Why we used it |
-| :--- | :--- | :--- |
-| **Docker** | Container platform | Packages the Python code and Flask into an isolated, portable image (`chaos-web:v1`). |
-| **Kubernetes (k8s)** | Container orchestrator | Manages containers at scale, handles load balancing, health monitoring, and self-healing. |
-| **kind** | Kubernetes in Docker | Runs a real Kubernetes cluster locally on our laptop inside Docker containers without needing cloud costs. |
-| **Deployment** | Kubernetes controller object | Declares the *desired state* (we want 3 replicas) and keeps pods running. |
-| **Service (NodePort)** | Kubernetes networking object | Acts as a stable internal load balancer and provides an entry point (`:30080` mapped to `localhost:8080`). |
-| **Probes (Liveness & Readiness)** | Health check mechanisms | Liveness probe restarts frozen containers; Readiness probe ensures traffic is sent only to healthy containers. |
-| **GitHub Actions** | Automated CI/CD tool | Automatically runs in the cloud on git push to build and verify our Docker image. |
+We use **Docker** to package the website and **GitHub Actions** to
+automatically deploy it to **GitHub Pages** on every push, with a scheduled
+health-check to monitor uptime.
 
 ---
 
-## 4. What Each File Does (2-Line Summary for Viva)
+## 3. Technologies Used (and Why)
 
-1. **`app/app.py`**  
-   Tiny Flask web server with two routes (`/` returns pod hostname, `/health` returns "ok"). Listens on port 5000.
-2. **`app/requirements.txt`**  
-   Lists external Python libraries required by our application; here, only `flask`.
-3. **`Dockerfile`**  
-   Recipe to build our container image from `python:3.12-slim`, installing dependencies and running `app.py`.
-4. **`k8s/deployment.yaml`**  
-   Specifies that exactly 3 pod replicas running `chaos-web:v1` must always be active with health probes.
-5. **`k8s/service.yaml`**  
-   A NodePort service routing external requests on port 80/30080 across all 3 backend pods on port 5000.
-6. **`kind-config.yaml`**  
-   Configures the local kind cluster and forwards Windows `localhost:8080` to the Kubernetes NodePort `30080`.
-7. **`.github/workflows/ci.yml`**  
-   CI workflow triggered on push to `main` that checks out code and builds the Docker image to prevent broken commits.
-8. **`scripts/demo.ps1`**  
-   PowerShell demonstration script that inspects pods, kills one, watches Kubernetes recreate it, and tests connectivity.
-9. **`docs/demo-output.txt`**  
-   Stored terminal log proving that the self-healing demonstration completed successfully.
-10. **`README.md`**  
-    Project overview, architectural diagram, and exact PowerShell commands to run and test the project.
-11. **`.gitignore`**  
-    Tells Git to ignore temporary Python bytecode (`__pycache__`) and local editor files.
+### Docker
+- **What:** A tool that packages an application and its dependencies into a
+  lightweight, portable unit called a *container*.
+- **Why:** So our website runs the same way on every machine — my laptop,
+  your laptop, or a cloud server — without "it works on my machine" problems.
 
----
+### Nginx
+- **What:** A fast, open-source web server used to serve static files
+  (HTML, CSS, images).
+- **Why:** It is tiny, fast, and the official `nginx:alpine` Docker image is
+  only ~40 MB, perfect for serving a simple static site.
 
-## 5. The Concept of "Desired State vs. Actual State" (Key Exam Concept!)
+### GitHub Actions
+- **What:** GitHub's built-in CI/CD (Continuous Integration / Continuous
+  Deployment) service. It runs automated workflows defined in YAML files
+  inside `.github/workflows/`.
+- **Why:** It is free for public repos, tightly integrated with GitHub, and
+  needs zero extra setup — no separate Jenkins or CircleCI server.
 
-Kubernetes is built on a **declarative reconciliation loop**:
-
-```
-[ Desired State: 3 Pods ]  <====== Compare ======>  [ Actual State: 2 Pods ]
-                                                              │
-                                                        Difference found!
-                                                              │
-                                                              ▼
-                                                   Kubelet starts 1 new Pod
-                                                              │
-                                                              ▼
-                                                   [ Actual State: 3 Pods ] ✅
-```
-
-- In our `deployment.yaml`, we declare: `replicas: 3` (**Desired State**).
-- When we delete a pod using `kubectl delete pod`, the active count drops to 2 (**Actual State**).
-- The Kubernetes Deployment Controller constantly checks: `Does Actual State == Desired State?`
-- Detecting a mismatch (2 != 3), Kubernetes immediately schedules and starts a replacement pod.
-- This is the definition of **Self-Healing Infrastructure**.
+### GitHub Pages
+- **What:** A free static-site hosting service by GitHub. It serves HTML/CSS
+  directly from your repository.
+- **Why:** Perfect for our project — free, automatic HTTPS, and can be
+  deployed straight from a GitHub Actions workflow.
 
 ---
 
-## 6. The Steps We Followed
-1. **Wrote the Code:** Built the Flask app and `Dockerfile`.
-2. **Created the Cluster:** Configured `kind-config.yaml` with port mapping and launched a kind cluster.
-3. **Built & Loaded the Image:** Built `chaos-web:v1` locally and injected it into kind using `kind load`.
-4. **Applied Manifests:** Applied Deployment and Service via `kubectl apply -f k8s/`.
-5. **Verified Health:** Checked pods with `kubectl get pods` and fetched the page with `curl.exe http://localhost:8080`.
-6. **Executed Chaos / Failure Test:** Ran `scripts/demo.ps1` to delete a pod and witnessed immediate recreation without service downtime.
-7. **Automated CI:** Configured GitHub Actions to build the container on every push.
+## 4. What Each File Does (2 Lines)
+
+| File | Purpose |
+|------|---------|
+| `site/index.html` | The main web page — a College Club Notice Board with 3 notices. Served by Nginx inside the container. |
+| `site/style.css` | Stylesheet that makes the page look clean with cards, colours, and spacing. Linked from index.html. |
+| `Dockerfile` | Tells Docker to use nginx:alpine and copy the site files into the web server's root. That's the whole image. |
+| `deploy.yml` | CI/CD pipeline triggered on push: checks the HTML exists → builds the Docker image → deploys to GitHub Pages. |
+| `health-check.yml` | Scheduled cron workflow (every hour) that curls the live URL and fails if the site is down. |
+| `.gitignore` | Lists files Git should not track, like OS junk files and editor settings. |
+| `README.md` | Project overview, text diagram, local run commands, and steps to deploy on GitHub. |
+| `EXAM_NOTES.md` | This file — plain-English explanation of every concept for exam preparation. |
 
 ---
 
-## 7. The 5 C's of Modern DevOps (Memory Aid for Viva)
+## 5. Steps I Followed
 
-1. **Code:** The Python Flask application (`app/app.py`).
-2. **Container:** Docker packaging application and runtime into an immutable image (`Dockerfile`).
-3. **Cluster:** Kubernetes managing nodes and running pods (`kind`, `k8s/`).
-4. **CI/CD:** GitHub Actions automatically building images upon code commit (`.github/workflows/ci.yml`).
-5. **Chaos:** Intentionally simulating failures (deleting a pod) to prove system resilience (`scripts/demo.ps1`).
+1. **Created the website** — wrote `index.html` and `style.css` inside a
+   `site/` folder.
+2. **Wrote the Dockerfile** — used `nginx:alpine` as the base image and
+   copied the `site/` folder into Nginx's default directory.
+3. **Built and tested locally** —
+   - `docker build -t club-site:v1 .`  (build the image)
+   - `docker run -d -p 8080:80 --name club-site club-site:v1`  (run it)
+   - Opened `http://localhost:8080` to confirm the page loads.
+4. **Created the deploy workflow** (`deploy.yml`) with three jobs:
+   - *check* — verifies `index.html` exists and is not empty.
+   - *build-image* — builds the Docker image (validates the Dockerfile).
+   - *deploy* — publishes the `site/` folder to GitHub Pages.
+5. **Created the health-check workflow** (`health-check.yml`) —
+   runs every hour via cron; uses `curl --fail` to ping the live URL.
+6. **Initialised Git** — `git init`, renamed branch to `main`, committed
+   all files.
+7. **Pushed to GitHub** — created a remote repo, pushed, enabled Pages,
+   and set the `SITE_URL` variable.
 
 ---
 
-## 8. Future Enhancements
-If extended to a full enterprise production environment, we would add:
-- **Metrics & Observability:** Prometheus to scrape metrics and Grafana to visualize latency and CPU usage.
-- **Autoscaling:** Horizontal Pod Autoscaler (HPA) to scale pod count based on incoming user traffic.
-- **Chaos Testing:** Chaos Mesh to automate advanced chaos experiments like packet delay and memory stress.
-- **Continuous Deployment (CD):** ArgoCD or Flux for GitOps automated cluster synchronization.
+## 6. Result
+
+- The website is **live** on GitHub Pages at a public URL.
+- Every push triggers the pipeline: check → build → deploy.
+- Every hour, the health-check confirms the site is reachable.
+- If anything fails, GitHub sends a notification.
+
+---
+
+## 7. Key DevOps Concepts Demonstrated
+
+| Concept | How It Appears |
+|---------|---------------|
+| **Containerisation** | Docker packages the site + Nginx into one image. |
+| **CI (Continuous Integration)** | The "check" and "build-image" jobs validate every push. |
+| **CD (Continuous Deployment)** | The "deploy" job pushes the site live automatically. |
+| **Infrastructure as Code** | The Dockerfile and YAML workflows define everything as code. |
+| **Monitoring** | The health-check cron job watches the live site. |
+
+---
+
+## 8. Future Work / Improvements
+
+- Add **HTML validation** (e.g., `html5validator`) to the check job.
+- Send a **Slack or email alert** if the health-check fails.
+- Add a **staging environment** and require approval before deploying to
+  production.
+- Use **Docker Hub** to push and version the image for production use.
+- Add **Lighthouse CI** to test page performance, accessibility, and SEO.
+
+---
+
+*Good luck with your exam! 🎓*

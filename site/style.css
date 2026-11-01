@@ -1,0 +1,89 @@
+/*
+  style.css - Styling for the College Club Notice Board.
+  Keeps things clean, readable, and mobile-friendly.
+  No frameworks needed — just plain CSS.
+*/
+
+/* ---------- RESET & BASE ---------- */
+/* Remove default browser spacing and set a nice font */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif; /* clean system font */
+  background-color: #f0f2f5;                  /* light grey background */
+  color: #333;                                /* dark text for readability */
+  line-height: 1.6;
+}
+
+/* ---------- HEADER ---------- */
+header {
+  background: linear-gradient(135deg, #1e3a5f, #2a7ae2); /* blue gradient */
+  color: #fff;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+/* ---------- MAIN CONTENT ---------- */
+main {
+  max-width: 720px;     /* keep content narrow and readable */
+  margin: 2rem auto;    /* centre the content block */
+  padding: 0 1rem;
+}
+
+/* ---------- NOTICE CARD ---------- */
+.notice {
+  background: #fff;
+  border-left: 5px solid #2a7ae2;   /* accent stripe on the left */
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* subtle shadow */
+  position: relative;
+}
+
+.notice h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.date {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- BADGE ---------- */
+.badge {
+  display: inline-block;
+  background: #2a7ae2;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  font-size: 0.85rem;
+  color: #888;
+  border-top: 1px solid #ddd;
+  margin-top: 1rem;
+}
