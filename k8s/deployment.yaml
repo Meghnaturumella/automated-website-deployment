@@ -1,0 +1,52 @@
+# k8s/deployment.yaml - Defines the desired state of our application pods
+# Kubernetes will ensure exactly 3 replicas are always running.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  labels:
+    app: web-app
+spec:
+  # Desired state: we want 3 pods running at all times
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: web
+          image: chaos-web:v1
+          # IfNotPresent allows kind to use the locally loaded image without trying to pull from Docker Hub
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+
+          # Small CPU and memory requests and limits
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+          # Liveness probe: checks if the app is still healthy. If it fails, Kubernetes restarts the pod.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          # Readiness probe: checks if the app is ready to accept traffic.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5

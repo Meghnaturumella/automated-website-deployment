@@ -1,0 +1,19 @@
+# k8s/service.yaml - Exposes our 3 pods behind a stable network address and load balancer
+# NodePort exposes port 30080 on the Kubernetes node, mapped to container port 5000.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  labels:
+    app: web-app
+spec:
+  type: NodePort
+  selector:
+    # Routes incoming traffic to pods labelled app=web-app
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 80           # Port inside the cluster
+      targetPort: 5000   # Container port where Flask is listening
+      nodePort: 30080    # Port exposed on the kind node (mapped to host localhost:8080)

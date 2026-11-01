@@ -1,0 +1,28 @@
+==========================================================
+ Kubernetes Self-Healing Demonstration
+==========================================================
+
+[Step 1] Current pods before deletion:
+NAME                      READY   STATUS    RESTARTS   AGE     IP           NODE                 NOMINATED NODE   READINESS GATES
+web-app-f56c5b469-mld7n   1/1     Running   0          2m22s   10.244.0.6   kind-control-plane   <none>           <none>
+web-app-f56c5b469-t6pl2   1/1     Running   0          2m22s   10.244.0.5   kind-control-plane   <none>           <none>
+web-app-f56c5b469-wrwxk   1/1     Running   0          2m22s   10.244.0.7   kind-control-plane   <none>           <none>
+
+Target pod chosen for deletion: web-app-f56c5b469-mld7n
+
+[Step 2] Deleting pod 'web-app-f56c5b469-mld7n' to simulate a failure...
+pod "web-app-f56c5b469-mld7n" deleted from default namespace
+
+[Step 3] Waiting 5 seconds for Kubernetes to reconcile desired state...
+
+[Step 4] Pods after deletion (Notice the new replacement pod):
+NAME                      READY   STATUS    RESTARTS   AGE     IP           NODE                 NOMINATED NODE   READINESS GATES
+web-app-f56c5b469-t6pl2   1/1     Running   0          2m57s   10.244.0.5   kind-control-plane   <none>           <none>
+web-app-f56c5b469-w6d5x   1/1     Running   0          35s     10.244.0.8   kind-control-plane   <none>           <none>
+web-app-f56c5b469-wrwxk   1/1     Running   0          2m57s   10.244.0.7   kind-control-plane   <none>           <none>
+
+[Step 5] Checking web service response from http://localhost:8080:
+Service Response: Hello from Kubernetes! Served by pod: web-app-f56c5b469-wrwxk
+==========================================================
+ Self-healing test successful! Kubernetes maintained 3 pods.
+==========================================================

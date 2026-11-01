@@ -1,0 +1,2 @@
+# app/requirements.txt - Only Flask is needed for this simple app
+flask==3.0.3

@@ -1,0 +1,36 @@
+# .github/workflows/ci.yml - Automated Continuous Integration pipeline
+# Triggers on every push to the main branch to verify that the Docker image builds cleanly.
+
+name: CI - Build and Test Image
+
+# Trigger workflow on git push to main branch
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download repository source code to the runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx for modern container building capabilities
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Build the Docker image from the Dockerfile (do not push to registry)
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: chaos-web:v1
+
+      # Step 4: Print the local Docker image list to prove the build succeeded
+      - name: Verify built image
+        run: docker images chaos-web:v1
