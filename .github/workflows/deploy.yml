@@ -108,8 +108,11 @@ jobs:
         uses: actions/checkout@v4
 
       # Set up GitHub Pages configuration on the runner.
+      # enablement: true tells GitHub to enable Pages automatically if not already on.
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       # Package the "site" folder into an artifact that Pages can use.
       - name: Upload site folder as Pages artifact
